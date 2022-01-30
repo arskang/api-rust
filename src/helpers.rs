@@ -1,0 +1,1 @@
+pub const CONTENT_TYPE: &str = "application/json; charset=utf-8";
