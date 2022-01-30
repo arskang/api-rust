@@ -1,6 +1,6 @@
 use actix_web::{get, post, put, delete, web, HttpResponse};
 use uuid::Uuid;
-use crate::helpers::CONTENT_TYPE;
+use crate::helpers;
 use crate::models;
 use crate::database;
 
@@ -11,7 +11,7 @@ async fn version() -> HttpResponse {
         version: "[1.0.0]".to_string(),
     };
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(version)
 }
 
@@ -20,7 +20,7 @@ async fn version() -> HttpResponse {
 async fn get_users() -> HttpResponse {
     let respose = database::get_users();
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(respose)
 }
 
@@ -28,15 +28,10 @@ async fn get_users() -> HttpResponse {
 #[get("/user/{id}")]
 async fn get_user(web::Path(id): web::Path<Uuid>) -> HttpResponse {
     let user = database::find_user(id);
-    let mut has_user: bool;
-    match &user {
-        Some(_) => { has_user = true },
-        None => { has_user = false },
-    }
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(models::ResponseUser{
-            error: has_user,
+            error: helpers::has_user(&user),
             data: user,
         })
 }
@@ -50,7 +45,7 @@ async fn create_user(body: web::Json<models::SimpleUser>) -> HttpResponse {
     };
     let id = database::create_user(&user);
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(models::ResponseUser{
             error: false,
             data: Some(models::User {
@@ -71,7 +66,7 @@ async fn update_user(body: web::Json<models::User>) -> HttpResponse {
     };
     let has_updated = database::update_user(&user);
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(models::ResponseUser{
             error: !has_updated,
             data: if has_updated { Some(user) } else { None },
@@ -83,7 +78,7 @@ async fn update_user(body: web::Json<models::User>) -> HttpResponse {
 async fn delete_user(web::Path(id): web::Path<Uuid>) -> HttpResponse {
     let has_delete = database::delete_user(id);
     HttpResponse::Ok()
-        .content_type(CONTENT_TYPE)
+        .content_type(helpers::CONTENT_TYPE)
         .json(models::ResponseError{
             error: has_delete,
             message: if has_delete { "Usuario eliminado".to_string() } else { "El usuario no pudo ser eliminado, es posible que no exista o ya haya sido eliminado".to_string() },
@@ -94,42 +89,30 @@ async fn delete_user(web::Path(id): web::Path<Uuid>) -> HttpResponse {
 #[get("*")]
 async fn get_error_404() -> HttpResponse {
     HttpResponse::NotFound()
-        .content_type(CONTENT_TYPE)
-        .json(models::ResponseError {
-            error: true,
-            message: "La ruta no se encuentra disponible".to_string(),
-        })
+        .content_type(helpers::CONTENT_TYPE)
+        .json(helpers::set_error_404())
 }
 
 // Manejo de errores
 #[post("*")]
 async fn post_error_404() -> HttpResponse {
     HttpResponse::NotFound()
-        .content_type(CONTENT_TYPE)
-        .json(models::ResponseError {
-            error: true,
-            message: "La ruta no se encuentra disponible".to_string(),
-        })
+        .content_type(helpers::CONTENT_TYPE)
+        .json(helpers::set_error_404())
 }
 
 // Manejo de errores
 #[put("*")]
 async fn put_error_404() -> HttpResponse {
     HttpResponse::NotFound()
-        .content_type(CONTENT_TYPE)
-        .json(models::ResponseError {
-            error: true,
-            message: "La ruta no se encuentra disponible".to_string(),
-        })
+        .content_type(helpers::CONTENT_TYPE)
+        .json(helpers::set_error_404())
 }
 
 // Manejo de errores
 #[delete("*")]
 async fn delete_error_404() -> HttpResponse {
     HttpResponse::NotFound()
-        .content_type(CONTENT_TYPE)
-        .json(models::ResponseError {
-            error: true,
-            message: "La ruta no se encuentra disponible".to_string(),
-        })
+        .content_type(helpers::CONTENT_TYPE)
+        .json(helpers::set_error_404())
 }
