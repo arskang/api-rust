@@ -31,7 +31,7 @@ async fn get_user(web::Path(id): web::Path<Uuid>) -> HttpResponse {
     HttpResponse::Ok()
         .content_type(helpers::CONTENT_TYPE)
         .json(models::ResponseUser{
-            error: helpers::has_user(&user),
+            error: !helpers::has_user(&user),
             data: user,
         })
 }
